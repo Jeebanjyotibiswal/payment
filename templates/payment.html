@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - {{ plan.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Complete Your Payment</h1>
+      <p>Scan the QR code to pay ₹{{ amount }}</p>
+    </header>
+
+    <div class="payment-container">
+      <div class="payment-summary">
+        <h2>Enrollment Summary</h2>
+        <div class="summary-card">
+          <div class="summary-item">
+            <strong>Plan:</strong> {{ plan.name }}
+          </div>
+          <div class="summary-item">
+            <strong>Amount:</strong> ₹{{ amount }}
+          </div>
+          <div class="summary-item">
+            <strong>Name:</strong> {{ name }}
+          </div>
+          <div class="summary-item">
+            <strong>Batch:</strong> {{ batch }}
+          </div>
+          <div class="summary-item">
+            <strong>Email:</strong> {{ email }}
+          </div>
+          <div class="summary-item">
+            <strong>Phone:</strong> {{ phone }}
+          </div>
+        </div>
+      </div>
+
+      <div class="qr-section">
+        <h2>Scan QR Code to Pay</h2>
+        
+        <div class="qr-container">
+          {% if plan.qr_image %}
+            <img src="{{ url_for('static', filename='qr_codes/' + plan.qr_image) }}" 
+                 alt="QR Code for ₹{{ amount }}" 
+                 class="qr-image"
+                 id="qrImage">
+          {% else %}
+            <div class="no-qr">
+              <p>QR code not available for this amount.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="action-buttons-qr">
+          <button onclick="openScanner()" class="btn primary scanner-btn">
+            📱 Open Scanner
+          </button>
+          
+          {% if plan.qr_image %}
+          <button onclick="downloadQRImage()" class="btn secondary download-btn">
+            📥 Download QR Code
+          </button>
+          {% endif %}
+        </div>
+
+        <div class="manual-payment-info">
+          <h3>Manual Payment Option</h3>
+          <div class="upi-details">
+            <p><strong>UPI ID:</strong> <span id="upiId">jeebanjyotibiswal766@oksbi</span></p>
+            <p><strong>Amount:</strong> ₹{{ amount }}</p>
+            <p><strong>Note:</strong> Course Fee for {{ plan.name }} - {{ name }}</p>
+            <button onclick="copyUPI()" class="btn copy-btn">
+              📋 Copy UPI ID
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <a href="{{ url_for('home') }}" class="btn secondary">Back to Home</a>
+      <button onclick="markAsPaid()" class="btn primary">I've Completed Payment</button>
+    </div>
+  </div>
+
+  <script>
+    function openScanner() {
+      // Check if the browser supports camera access
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // Try to open camera for scanning
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+          .then(function(stream) {
+            // Camera opened successfully
+            alert("Camera opened! Point at the QR code to scan.\n\nIf you don't have a QR scanner app, please install one from your app store.");
+            // Stop the camera stream
+            stream.getTracks().forEach(track => track.stop());
+          })
+          .catch(function(error) {
+            // Camera access denied or not available
+            console.log("Camera error:", error);
+            alert("To scan QR codes:\n\n1. Open your camera app\n2. Point it at the QR code\n3. Or use any QR scanner app\n\nYou can also download the QR code image and scan it later.");
+          });
+      } else {
+        // Fallback for browsers without camera support
+        alert("To scan the QR code:\n\n1. Open your phone's camera\n2. Point it at the QR code\n3. Tap on the notification that appears\n\nOr download the QR code and scan it from your gallery.");
+      }
+    }
+
+    function downloadQRImage() {
+      const qrImage = document.getElementById('qrImage');
+      if (qrImage) {
+        // Create a temporary anchor element
+        const link = document.createElement('a');
+        link.href = qrImage.src;
+        link.download = `payment-qr-₹{{ amount }}-{{ plan.name }}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        alert("QR code downloaded! You can now scan it from your photo gallery.");
+      } else {
+        alert("QR code not available for download.");
+      }
+    }
+
+    function copyUPI() {
+      const upiId = document.getElementById('upiId').textContent;
+      navigator.clipboard.writeText(upiId)
+        .then(() => {
+          alert("UPI ID copied to clipboard: " + upiId);
+        })
+        .catch(err => {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = upiId;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          alert("UPI ID copied: " + upiId);
+        });
+    }
+
+    function markAsPaid() {
+      if (confirm(`Have you completed the payment of ₹{{ amount }}?`)) {
+        alert("Thank you for your payment! We will verify and activate your course access within 24 hours.");
+        window.location.href = "{{ url_for('success') }}";
+      }
+    }
+
+    // Add click event to QR image for better UX
+    document.addEventListener('DOMContentLoaded', function() {
+      const qrImage = document.getElementById('qrImage');
+      if (qrImage) {
+        qrImage.addEventListener('click', function() {
+          openScanner();
+        });
+        
+        // Add hover effect
+        qrImage.style.cursor = 'pointer';
+        qrImage.title = 'Click to open scanner';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <div class="success-container">
+      <div class="success-icon">✓</div>
+      <h1>Payment Received!</h1>
+      <p>Thank you for your enrollment. We've received your payment and will activate your course access shortly.</p>
+      
+      <div class="next-steps">
+        <h2>What's Next?</h2>
+        <ul>
+          <li>Check your email for course access details</li>
+          <li>Join our student community</li>
+          <li>Start learning immediately after access is granted</li>
+        </ul>
+      </div>
+      
+      <a href="{{ url_for('home') }}" class="btn primary">Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
